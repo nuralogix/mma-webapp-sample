@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Measurement Results</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: "Work Sans", sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #main-header {
+            text-align: center;
+            color: #F65F77;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+
+        a {
+            color: #5ba5ff;
+        }
+
+        .result {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            position: relative;
+            font-size: 1.1em;
+        }
+
+        .result:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -5px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-icon {
+            margin-right: 10px;
+            width: 30px;
+            height: 30px;
+            color: #023676;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .result-icon svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .result-icon.fallback {
+            font-size: 20px;
+            text-align: center;
+            line-height: 30px;
+            color: currentColor;
+        }
+
+        .result-name-wrapper {
+            flex: 0 1 auto;
+            min-width: 0;
+            margin-right: 10px;
+        }
+
+        .result-name {
+            margin-right: 0;
+        }
+
+        .result-info-icon {
+            border: 1px solid transparent;
+            background-color: rgba(2, 54, 118, 0.08);
+            color: #023676;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            margin-right: 0;
+            margin-left: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.45em;
+            cursor: pointer;
+            vertical-align: top;
+        }
+
+        #snrContainer .result-info-icon,
+        #starsContainer .result-info-icon {
+            margin-left: 5px;
+            margin-right: 0;
+        }
+
+        .result-info-icon:hover,
+        .result-info-icon:active,
+        .result-info-icon:focus {
+            outline: none;
+            background-color: none;
+        }
+
+        .result-value {
+            margin-left: auto;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .result-unit {
+            margin-left: 0.4em;
+            font-size: 0.9em;
+            color: #333333;
+        }
+
+        h2 {
+            position: relative;
+            padding-bottom: 5px;
+            color: #023676;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-bottom: 1px solid #255be3;
+        }
+
+        .star {
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            display: inline-block;
+            height: 100%;
+            aspect-ratio: 1;
+            align-items: center;
+        }
+
+        .greenBackground {
+            background-color: #4CAF50;
+        }
+
+        .greyBackground {
+            background-color: #909090;
+        }
+
+        .green {
+            color: #4CAF50;
+        }
+
+        .lightGreen {
+            color: #8BC34A;
+        }
+
+        .yellow {
+            color: #e8b428;
+        }
+
+        .lightRed {
+            color: #fd929d;
+        }
+
+        .red {
+            color: #F44336;
+        }
+
+        .grey {
+            color: #333333;
+        }
+
+        #timestamp {
+            color: #6e6e6e;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #main-container {
+            margin: 1em;
+        }
+
+        #measurementInfo {
+            height: 1.5em;
+            align-content: center;
+            text-align: center;
+            color: #333333;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1em;
+        }
+
+        #measurementInfo span+span {
+            border-left: solid #909090 1px;
+        }
+
+        #snrContainer {
+            font-weight: bold;
+            padding-left: 0.5em;
+            padding-right: 0.5em;
+        }
+
+        #starsContainer {
+            padding-left: 0.5em;
+            padding-right: 0.5em;
+            display: block;
+            height: max-content;
+            width: max-content;
+            height: 100%;
+            white-space: nowrap;
+        }
+
+        #results-container {
+            display: block;
+            max-width: 55em;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Loading / error states */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            font-size: 1.1rem;
+            color: #6e6e6e;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e0e0e0;
+            border-top-color: #023676;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        .error-message {
+            border: 2px solid #ef5350;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #c62828;
+            margin: 20px auto;
+            max-width: 55em;
+        }
+
+        .back-button {
+            background: none;
+            color: #023676;
+            border: none;
+            padding: 10px 1em;
+            font-size: 1rem;
+            cursor: pointer;
+            display: block;
+        }
+
+        .back-button:hover {
+            opacity: 0.7;
+        }
+
+        /* Navigation buttons footer */
+        footer {
+            background-color: #e3e3e3;
+            color: #363636;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 0 1em;
+        }
+
+        .button {
+            padding: 10px 28px;
+            font-family: "Work Sans", sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .button:hover {
+            opacity: 0.85;
+        }
+
+        .button-primary {
+            background: #F65F77;
+            color: white;
+        }
+
+        .button-secondary {
+            background: #023676;
+            color: white;
+        }
+
+        /* Point info dialog */
+        .point-info-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.35);
+            padding: 1rem;
+            z-index: 1000;
+        }
+
+        .point-info-overlay.visible {
+            display: flex;
+        }
+
+        .point-info-dialog {
+            background: #ffffff;
+            border-radius: 12px;
+            max-width: 520px;
+            max-height: 80vh;
+            width: 100%;
+            padding: 1.5rem;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .point-info-title {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            color: #023676;
+        }
+
+        .point-info-close {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            border: none;
+            background: none;
+            color: #023676;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 24px;
+            line-height: 1;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .point-info-close::before { content: '×'; }
+
+        .point-info-close:hover,
+        .point-info-close:active,
+        .point-info-close:focus {
+            background: none;
+            outline: none;
+        }
+
+        .point-info-content p { margin: 0.5rem 0; }
+
+        .point-info-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .point-info-segments {
+            background: linear-gradient(135deg, #f7f9ff 0%, #eef1fb 100%);
+            border: 1px solid #e1e7fb;
+            border-radius: 18px;
+            padding: 1rem 1.25rem 1.35rem;
+        }
+
+        .point-info-current-value {
+            font-size: 2.2rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .point-info-segment-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #5d6276;
+            margin-top: 0.75rem;
+        }
+
+        .point-info-segments-track-wrapper {
+            position: relative;
+            margin-top: 0.8rem;
+        }
+
+        .point-info-segments-track {
+            position: relative;
+            display: flex;
+            height: 12px;
+            border-radius: 999px;
+            overflow: hidden;
+            background-color: #dfe4f5;
+        }
+
+        .point-info-segment-block { flex: 1; }
+
+        .point-info-segment-pointer {
+            position: absolute;
+            top: 100%;
+            transform: translateX(-50%) translateY(-10px);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .point-info-special-block { padding: 0 0.25rem; }
+
+        .point-info-state-label {
+            margin: 0 0 0.35rem;
+            font-size: 0.9rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #717894;
+        }
+
+        .point-info-markdown {
+            color: #1c1f2d;
+            font-size: 0.95rem;
+            line-height: 1.55;
+            word-break: break-word;
+        }
+
+        .point-info-markdown h3,
+        .point-info-markdown h4 { margin: 1rem 0 0.35rem; color: #023676; }
+
+        .point-info-markdown p { margin: 0.4rem 0; }
+
+        .point-info-markdown-list { padding-left: 1.25rem; margin: 0.35rem 0; }
+
+        .point-info-markdown table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.85rem 0;
+            font-size: 0.9rem;
+        }
+
+        .point-info-markdown th,
+        .point-info-markdown td { border: 1px solid #e0e2eb; padding: 0.5rem; text-align: left; }
+
+        .point-info-markdown th { background: #f5f7fb; font-weight: 600; }
+
+        .point-info-markdown a { color: #255be3; text-decoration: none; }
+        .point-info-markdown a:hover { text-decoration: underline; }
+
+        .point-info-stars {
+            display: flex;
+            justify-content: center;
+            gap: 0.35rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .point-info-stars .star { width: 1.4rem; height: 1.4rem; }
+        .point-info-star-content { text-align: center; }
+
+        .point-info-legend-title {
+            margin-top: 1rem;
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+            color: #023676;
+        }
+
+        .point-info-scale-list { list-style: none; padding: 0; margin: 0.5rem 0 0; }
+
+        .point-info-scale-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.35rem;
+            font-size: 0.95rem;
+        }
+
+        .point-info-color-swatch {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 999px;
+            margin-right: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .point-info-color-swatch.green     { background-color: #4CAF50; }
+        .point-info-color-swatch.lightGreen { background-color: #8BC34A; }
+        .point-info-color-swatch.yellow    { background-color: #e8b428; }
+        .point-info-color-swatch.lightRed  { background-color: #fd929d; }
+        .point-info-color-swatch.red       { background-color: #F44336; }
+        .point-info-color-swatch.grey      { background-color: #909090; }
+
+        .point-info-subsection h3 {
+            margin-top: 1rem;
+            margin-bottom: 0.25rem;
+            color: #023676;
+            font-size: 1.05rem;
+        }
+
+        body.info-dialog-open { overflow: hidden; }
+
+        .footer-disclaimer {
+            font-size: 0.75rem;
+            color: #666;
+            text-align: center;
+            white-space: pre-line;
+            line-height: 1.4;
+            margin: 16px 1rem 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="main-container">
+        <button class="back-button" onclick="backToHome()" data-i18n="btn_back">← Back</button>
+        <div id="main-header"><h1 data-i18n="title">Measurement Results</h1></div>
+        <div id="measurementInfo"></div>
+        <div id="timestamp"></div>
+
+        <div id="loadingMessage" class="loading">
+            <div class="loading-spinner"></div>
+            <span data-i18n="loading">Loading measurement results...</span>
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;">
+            Unable to load measurement results
+        </div>
+
+        <div id="resultsContent" style="display: none;">
+            <div id="results-container"></div>
+        </div>
+    </div>
+    <footer>
+        <div class="button-container">
+            <button class="button button-secondary" onclick="backToHome()" data-i18n="btn_home">
+                Back to Home
+            </button>
+        </div>
+        <div id="disclaimer-container"></div>
+    </footer>
+
+    <script src="js/vendor/float16.min.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/svg-icons.js"></script>
+    <script src="js/point-info-dialog.js"></script>
+    <script src="js/results-app.js"></script>
+    <script>
+        // Dev helper: decode microsite-style ?r= URL param into sessionStorage
+        (function () {
+            const r = new URLSearchParams(window.location.search).get('r');
+            if (!r || sessionStorage.getItem('measurementData')) return;
+            try {
+                const { getFloat16 } = float16;
+
+                function crc16hash(str) {
+                    let buf = Array.from(str).map(c => c.charCodeAt(0));
+                    let crc = 0xFFFF;
+                    for (let i = 0; i < buf.length; i++) {
+                        crc ^= buf[i];
+                        for (let j = 0; j < 8; j++) {
+                            let odd = crc & 1; crc >>= 1;
+                            if (odd) crc ^= 0xA001;
+                        }
+                    }
+                    return `${crc & 0xFF}${(crc >> 8) & 0xFF}`;
+                }
+
+                // Build reverse map: hashString -> pointID string
+                const reverseMap = {};
+                const defs = DeepAffexWebResultsData.definitions.pointDefinitions;
+                for (const key of Object.keys(defs)) reverseMap[crc16hash(key)] = key;
+                ['SNR', 'STAR_RATING'].forEach(k => reverseMap[crc16hash(k)] = k);
+
+                const raw = atob(decodeURIComponent(r));
+                const bytes = Uint8Array.from(raw, c => c.charCodeAt(0));
+                if (bytes[0] !== 0x4e || bytes[1] !== 0x51 || bytes[2] !== 0x31)
+                    throw new Error('Invalid NuraQR header');
+
+                const tsNum = new DataView(bytes.buffer, 3, 4).getUint32(0, true);
+                const ts = tsNum.toString();
+                const timestamp = new Date(
+                    parseInt('20' + ts.slice(0, 2)), parseInt(ts.slice(2, 4)) - 1,
+                    parseInt(ts.slice(4, 6)), parseInt(ts.slice(6, 8)), parseInt(ts.slice(8, 10))
+                );
+
+                const payload = bytes.slice(7);
+                const results = { timestamp: timestamp.toISOString() };
+                for (let i = 0; i + 3 < payload.length; i += 4) {
+                    const hash = `${payload[i]}${payload[i + 1]}`;
+                    const pointID = reverseMap[hash];
+                    const val = parseFloat(getFloat16(new DataView(payload.buffer, payload.byteOffset + i + 2, 2), 0, true).toFixed(2));
+                    if (pointID !== undefined) results[pointID] = val;
+                }
+
+                sessionStorage.setItem('measurementData', JSON.stringify(results));
+                const url = new URL(window.location.href);
+                url.searchParams.delete('r');
+                window.location.replace(url.toString());
+            } catch (e) {
+                console.error('Failed to decode ?r= param:', e);
+            }
+        })();
+    </script>
+    <script>
+        const resultTranslations = {
+            en: { title: 'Measurement Results', btn_back: '← Back', btn_home: 'Back to Home', loading: 'Loading measurement results...' },
+            zh: { title: '测量结果', btn_back: '← 返回', btn_home: '返回主页', loading: '正在加载测量结果...' }
+        };
+
+        function applyResultTranslations(lang) {
+            const t = resultTranslations[lang] || resultTranslations['en'];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key] !== undefined) el.textContent = t[key];
+            });
+        }
+
+        let measurementData = null;
+
+        function isAndroidBridgeAvailable() {
+            return typeof AndroidBridge !== 'undefined' && AndroidBridge !== null;
+        }
+
+        // Called by Android native to deliver results
+        function setMeasurementResults(paramsJson) {
+            try {
+                measurementData = JSON.parse(paramsJson);
+                displayResults(measurementData);
+            } catch (error) {
+                console.error('Error parsing measurement data:', error);
+                showError('Data parsing error: ' + error.message);
+            }
+        }
+
+        function displayResults(results) {
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('resultsContent').style.display = 'block';
+
+            if (!results || results.length === 0) {
+                showError('No measurement results available');
+                return;
+            }
+
+            results["timestamp"] = results.timestamp ? new Date(results.timestamp) : new Date();
+
+            const locale = localStorage.getItem('selectedLanguage') || getLocale();
+            renderResults(
+                results,
+                DeepAffexWebResultsData.definitions.pointDefinitions,
+                DeepAffexWebResultsData.sections,
+                locale
+            );
+            renderDisclaimer(locale);
+        }
+
+        function showError(message) {
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('resultsContent').style.display = 'none';
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorMessage').style.display = 'block';
+        }
+
+        function startNewMeasurement() {
+            if (isAndroidBridgeAvailable()) {
+                try {
+                    AndroidBridge.onJSRequest(JSON.stringify({
+                        type: "navigate",
+                        data: JSON.stringify({ destination: "profile", params: {} })
+                    }));
+                } catch (error) {
+                    console.error('Failed to navigate to profile:', error);
+                }
+            } else {
+                window.location.href = 'profile.html';
+            }
+        }
+
+        function backToHome() {
+            if (isAndroidBridgeAvailable()) {
+                try {
+                    AndroidBridge.onJSRequest(JSON.stringify({
+                        type: "navigate",
+                        data: JSON.stringify({ destination: "index", params: {} })
+                    }));
+                } catch (error) {
+                    console.error('Failed to navigate to home:', error);
+                }
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const savedLanguage = localStorage.getItem('selectedLanguage');
+            applyResultTranslations(savedLanguage || 'en');
+            if (savedLanguage && isAndroidBridgeAvailable()) {
+                try {
+                    AndroidBridge.onJSRequest(JSON.stringify({ type: "switchLanguage", data: savedLanguage }));
+                } catch (error) {
+                    console.error('Failed to sync language with Android:', error);
+                }
+            }
+
+            const storedData = sessionStorage.getItem('measurementData');
+            if (storedData) {
+                sessionStorage.removeItem('measurementData');
+                setMeasurementResults(storedData);
+            } else {
+                showError('No measurement data found.');
+            }
+        });
+    </script>
+</body>
+</html>
