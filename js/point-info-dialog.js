@@ -24,7 +24,7 @@ const PointInfoDialog = (() => {
         SKINAGE: 'SKINAGE',
         CARDIACWORKLOAD: 'CARDIACWORKLOAD',
         VASCULARAGE: 'VASCULARAGE',
-        VASCULARCAPACITY: 'VASCULARCAPACITY'
+        BP_TAU: 'VASCULARCAPACITY'
     };
 
     const POINTS_WITHOUT_INDICATOR = new Set(['AGE', 'SNR']);
@@ -32,12 +32,12 @@ const PointInfoDialog = (() => {
     const STAR_POINT_IDS = new Set(['SIGNAL_STAR_INFO', 'STAR_RATING']);
 
     const SEGMENT_COLOR_MAP = {
-        green: '#4CAF50',
-        lightGreen: '#8BC34A',
-        yellow: '#E8B428',
-        lightRed: '#FD929D',
-        red: '#F44336',
-        grey: '#9E9E9E'
+        green: '#00de93',
+        lightGreen: '#72e9b4',
+        yellow: '#ffeb78',
+        lightRed: '#ff8286',
+        red: '#ff444f',
+        grey: '#909090'
     };
 
     const POINT_INFO_DEBUG_LOGS = true;
@@ -176,6 +176,9 @@ const PointInfoDialog = (() => {
     function formatValueWithUnit(value, pointDefinition, locale) {
         if (typeof value !== 'number') {
             return '?';
+        }
+        if (pointDefinition._tempCelsius !== undefined) {
+            return `${pointDefinition._tempCelsius.toFixed(1)}°C (${pointDefinition._tempFahrenheit.toFixed(1)}°F)`;
         }
         const formatted = formatResultValue(value, pointDefinition.decimalPlaces ?? 0, pointDefinition.units ?? '', locale);
         const unit = pointDefinition.units;
@@ -415,15 +418,6 @@ const PointInfoDialog = (() => {
         valueLabel.textContent = formatValueWithUnit(pointValue, pointDefinition, locale);
         indicator.appendChild(valueLabel);
 
-        const labelsRow = document.createElement('div');
-        labelsRow.className = 'point-info-segment-labels';
-        boundaries.forEach(boundary => {
-            const label = document.createElement('span');
-            label.textContent = formatSegmentLabel(boundary, pointDefinition, locale);
-            labelsRow.appendChild(label);
-        });
-        indicator.appendChild(labelsRow);
-
         const trackWrapper = document.createElement('div');
         trackWrapper.className = 'point-info-segments-track-wrapper';
 
@@ -459,14 +453,6 @@ const PointInfoDialog = (() => {
         trackWrapper.appendChild(pointer);
         indicator.appendChild(trackWrapper);
         return indicator;
-    }
-
-    function formatSegmentLabel(value, pointDefinition, locale) {
-        if (typeof value !== 'number') {
-            return '';
-        }
-        const decimals = typeof pointDefinition.decimalPlaces === 'number' ? pointDefinition.decimalPlaces : 0;
-        return formatResultValue(value, decimals, pointDefinition.units ?? '', locale);
     }
 
     function getSegmentBoundaries(segments) {

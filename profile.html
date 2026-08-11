@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>User Information - NuraLogix MMA</title>
     <style>
         * {
@@ -13,11 +13,11 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: white;
+            background: #000;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            color: #333;
+            color: #fff;
         }
 
         .container {
@@ -32,7 +32,7 @@
 
         .back-button {
             background: none;
-            color: #023676;
+            color: #005DBC;
             border: none;
             padding: 10px 0;
             font-size: 1rem;
@@ -53,13 +53,13 @@
         .title {
             font-size: 1.6rem;
             font-weight: 700;
-            color: #023676;
+            color: #fff;
             margin-bottom: 8px;
         }
 
         .subtitle {
             font-size: 0.95rem;
-            color: #666;
+            color: #aaa;
         }
 
         .form-container {
@@ -75,22 +75,22 @@
             margin-bottom: 6px;
             font-weight: 600;
             font-size: 0.95rem;
-            color: #333;
+            color: #fff;
         }
 
         .form-input {
             width: 100%;
             padding: 12px 14px;
-            border: 1px solid #ddd;
+            border: 1px solid #444;
             border-radius: 8px;
-            background: white;
-            color: #333;
+            background: #1a1a1a;
+            color: #fff;
             font-size: 1rem;
         }
 
         .form-input:focus {
             outline: none;
-            border-color: #023676;
+            border-color: #005DBC;
         }
 
         /* Radio button groups (gender, yes/no, diabetes) */
@@ -116,24 +116,24 @@
         .radio-label {
             display: block;
             padding: 11px 14px;
-            border: 1px solid #ddd;
+            border: 1px solid #444;
             border-radius: 8px;
-            background: white;
+            background: #1a1a1a;
             text-align: center;
             cursor: pointer;
-            color: #333;
+            color: #fff;
             font-size: 0.95rem;
             white-space: nowrap;
         }
 
         .radio-input:checked + .radio-label {
-            background: #023676;
-            border-color: #023676;
+            background: #005DBC;
+            border-color: #005DBC;
             color: white;
         }
 
         .next-button {
-            background: #023676;
+            background: #005DBC;
             color: white;
             border: none;
             padding: 14px;
@@ -172,7 +172,7 @@
         .optional-hint {
             font-weight: 400;
             font-size: 0.85rem;
-            color: #999;
+            color: #777;
         }
 
         .container {
@@ -190,7 +190,7 @@
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: white;
+            background: #000;
             z-index: 1000;
             flex-direction: column;
             align-items: center;
@@ -206,7 +206,7 @@
             width: 48px;
             height: 48px;
             border: 4px solid #e0e0e0;
-            border-top-color: #023676;
+            border-top-color: #005DBC;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -222,8 +222,8 @@
 
         .spinner-cancel {
             background: transparent;
-            color: #023676;
-            border: 1px solid #023676;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.4);
             padding: 10px 28px;
             font-size: 0.95rem;
             border-radius: 50px;
@@ -351,7 +351,7 @@
         </div>
 
         <button class="next-button" id="nextButton" onclick="submitProfile()" data-i18n="btn_next">Next</button>
-        <button class="next-button" style="margin-top:10px; background:transparent; color:#023676; border:1px solid #023676;" onclick="skipProfile()" data-i18n="btn_skip">Skip Profile</button>
+        <button class="next-button" style="margin-top:10px; background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.4);" onclick="skipProfile()" data-i18n="btn_skip">Skip Profile</button>
     </div>
 
     <div id="spinner-overlay">
@@ -538,6 +538,8 @@
             const t = profileTranslations[lang] || profileTranslations['en'];
             nextButton.disabled = true;
             nextButton.textContent = t.btn_processing;
+
+            localStorage.setItem('lastProfileData', JSON.stringify(formData));
 
             if (isAndroidBridgeAvailable()) {
                 try {
