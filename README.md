@@ -1,4 +1,4 @@
-# NuraLogix mma-webapp-demo
+# NuraLogix mma-webapp-sample
 
 A sample WebView frontend designed to run inside the MMA App.
 
@@ -12,8 +12,8 @@ There are **two ways** to use this project:
 
 | Mode | Pages used | Use case |
 |---|---|---|
-| **Full WebView Flow** | `index.html` → `profile.html` → Scan (Native App)-> `result.html` | Complete pre-scan and post-scan experience |
-| **Results page only** | Native App → `result.html` | Use when you only need to customise the results screen. Covers two scenarios: (1) **On MMA WebView results** — native app handles the full scan flow and passes results directly to `result.html` on the MMA within WebView; (2) **Results sharing through QR code** — native app generates a QR code containing a result URL with an encoded payload, which the user scans to open `result.html` in a browser on their own device. |
+| **Full WebView Flow** | `index.html` → `profile.html` → Scan (Native App) → `result.html` | Complete pre-scan and post-scan experience |
+| **Results page only** | Native App → `result.html` | Use when you only need to customise the results screen. Covers two scenarios: (1) **On MMA WebView results** — native app handles the full scan flow and passes results directly to `result.html` within WebView; (2) **Results sharing through QR code** — results are encoded into a QR code URL which the user scans to open `result.html` in a browser on their own device. |
 
 ---
 
@@ -21,8 +21,8 @@ There are **two ways** to use this project:
 
 | File | Purpose |
 |---|---|
-| `index.html` | Home / landing page — entry point loaded by the MMA device |
-| `profile.html` | User profile form — collects and validates [User Profile and Medical History Questionnaire]('https://docs.deepaffex.ai/guide/demographics.html') before a scan, can also be used tag an ID to the scan using Partner ID field |
+| `index.html` | Home / landing page — displays the logo centered on screen with Continue and Sample Results buttons |
+| `profile.html` | User profile form — collects and validates [User Profile and Medical History Questionnaire]('https://docs.deepaffex.ai/guide/demographics.html') before a scan, can also be used to tag an ID to the scan using the Partner ID field |
 | `result.html` | Results page — renders all DeepAffex™ measurement outputs |
 
 ---
@@ -30,10 +30,11 @@ There are **two ways** to use this project:
 ## Project Structure
 
 ```
-mma-webapp-demo/
+mma-webapp-sample/
 ├── index.html
 ├── profile.html
 ├── result.html
+├── config.js                  # Runtime configuration (QR, excluded points)
 ├── js/
 │   ├── common.js              # Handles inbound navigation requests from the MMA platform
 │   ├── data.js                # Point definitions, scale segments, and translations
@@ -41,11 +42,50 @@ mma-webapp-demo/
 │   ├── svg-icons.js           # Inline SVG icons for all measurement points
 │   ├── point-info-dialog.js   # Info overlay dialog for each metric
 │   └── vendor/
-│       └── float16.min.js     # Float16 decoder (used by dev URL helper)
+│       └── float16.min.js     # Float16 decoder (used by QR result decoding)
 └── assets/
     └── imgs/
         └── warning32.png      # Disclaimer icon
 ```
+
+---
+
+## Configuration (`config.js`)
+
+All runtime options are set in `config.js` via the `APP_CONFIG` object.
+
+```js
+var APP_CONFIG = {
+    // Point IDs to hide from the results page entirely.
+    excludePoints: [
+        "HEIGHT",
+        "WEIGHT",
+        "WAIST_CIRCUM"
+    ],
+    qrCodeResults: {
+        // Set to true to show a Share button on the results screen that generates a QR code.
+        enabled: true,
+        // URL base for the QR code. The encoded results (?r=) and measurement ID (?mid=)
+        // are appended automatically. Pages opened via QR code are automatically detected
+        // as standalone (no Exit/Try Again buttons) because the ?r= param is present.
+        // Leave empty to use the current page's own URL.
+        url: "https://your-hosted-result-page.example.com/result.html"
+    }
+};
+```
+
+### `excludePoints`
+
+A list of DeepAffex™ point IDs to suppress from the results view. Any point ID listed here will be skipped during rendering even if the measurement returned a value for it. Use this to tailor the results to your deployment.
+
+### `qrCodeResults`
+
+| Field | Type | Description |
+|---|---|---|
+| `enabled` | `boolean` | When `true`, a **Share** button appears on the results screen. Tapping it generates a QR code the user can scan on their phone to view their results. |
+| `url` | `string` | The base URL of the hosted results page to encode into the QR code. Leave empty (`""`) to use the current page's URL |
+
+> **Standalone detection:** When a results page is opened via a QR code URL, the `?r=` parameter is present. The page uses this automatically to hide the Exit and Try Again buttons, which are only relevant on the MMA device itself.
 
 ---
 
@@ -62,27 +102,23 @@ python -m http.server 8080
 
 Then open `http://localhost:8080` in your browser.
 
-> **Note:** Any call that requires the MMA bridge (navigation to the measurement screen, language switching, device ID) will fall back gracefully to `console.warn` / `alert` stubs when running in a browser.
+> **Note:** Any call that requires the MMA bridge (navigation to the measurement screen, language switching, device ID) will fall back gracefully when running in a browser.
 
-### Quick preview with sample results
+### Quick preview with sample results (native flow)
 
-On the home page, click **Sample Results** to load a pre-populated results page instantly — no MMA device connection required. This is the fastest way to preview and customise the results UI.
+On the home page, click **Sample Results** to load a pre-populated results page instantly — no MMA device connection required. This simulates the native bridge flow: Exit and Try Again buttons are shown, exactly as they would be on an MMA device.
 
-### Testing the results page in isolation
+### Testing the URL-based (QR) results flow
 
-If you are using **results page only** mode, you can load a real encoded result payload directly in the browser using the `?r=` query parameter:
-
-```
-http://localhost:8080/result.html?r=<encoded-payload>
-```
+To test the standalone QR flow in a browser, load a result URL with the `?r=` query parameter directly. In this mode, Exit and Try Again buttons are hidden, matching what a user sees after scanning a QR code.
 
 Example:
 
 ```
-http://localhost:8080/result.html?r=TlEx12gMm7AqvTJcwnJVJmBZVEsYYVRjqT88UYV6VE49QlLKAwBD%2BGr1U0qmw04TZkk909cAUUCwJUM1jKJIHNF2Qpi320FrlapUFb4YRR0OQETYue1Nv6d8UEgs%2FFH4wABMTQoAAKQaeVXxTdBO9s63VyfTVURT6kxZcZJrQ3laAEJgCm1S9JN3U8MillBAzMpDJvMAPPITOk5JCtlHbJ4xQf8MllDYTwBC
+http://localhost:8080/result.html?r=TlExkyFmm6Qab1X0k6xTSQrGR9i5lkRgCn9SXMJ8VSbzADyYt3JBJmBEVHlaAEL4agdUcZJ1Q2Op%2Fjb4wABJHNF9Qh0OQETKAwBCSxjmUGuVhFQ1jCZI9s7RV8MiklBOPZpQSCxLTfITZ06U6YBOv6deTVGFkVTxTVpJGydASSfTVUOwKjYoU%2BpIWa6RU0ITZms209dATxW%2B5ERAzNBDSqa8T00KAABsnrZAQLAlRP8MklDYTwBCn6gATYQoWT5F6KI%2BBenpPsQpED%2BF61I%2FRCtvPwQqnj%2FF6v8%2Fhe4ZQEQuTEAp57xA6CfzQagmJUJp5oZCKCRIROnkl0Wp5axFaCXBRSgh1kXp4etF&mid=806e1a9d-3dd8-4847-b64d-3bce3043535e
 ```
 
-The `?r=` value is a an encoded binary payload (the same format used in QR code sharing). The page decodes it, seeds `sessionStorage`, and then redirects to itself without the parameter. Encoded payloads can be obtained from the MMA device or the NuraLogix developer portal.
+The `?r=` value is a binary-encoded payload (the same format used in QR code sharing). The page decodes it, seeds `sessionStorage`, and renders the results.
 
 ---
 
@@ -97,15 +133,29 @@ index.html ──(Continue)──► profile.html ──(Next / Skip Profile)─
                                                                               │
                                                                               ▼
                                                                        result.html
+                                                                    (Exit / Try Again)
 ```
 
 ### Mode 2 — Results page only
 
 ```
 [MMA Measurement] ──► result.html
+                   (Exit / Try Again shown)
 ```
 
 In this mode, the pre-scan pages (`index.html`, `profile.html`) are not used.
+
+### QR code sharing
+
+```
+result.html ──(Share button)──► QR code overlay
+                                       │
+                              User scans with phone
+                                       │
+                                       ▼
+                              result.html?r=<payload>
+                              (standalone — no Exit/Try Again)
+```
 
 ---
 
@@ -237,8 +287,9 @@ All keys are plain strings (e.g. `"HR_BPM"`). The `timestamp` field is a Unix mi
 
 ## Customisation Notes
 
-- **Styling** — Each page has its own `<style>` block. Brand colours used throughout: `#F65F77` (pink accent), `#023676` (dark blue).
-- **Adding / removing metrics** — Edit the `sections` array in `js/data.js` to control which points appear and in which section.
+- **Styling** — Each page has its own `<style>` block. Brand colours used throughout: `#F65F77` (pink accent), `#005DBC` (blue).
+- **Excluding metrics** — Add point IDs to `excludePoints` in `config.js` to hide them from the results view without touching `data.js`.
+- **Adding / reordering metrics** — Edit the `sections` array in `js/data.js` to control which points appear and in which section.
 - **Point definitions** — Scale segments, colour thresholds, units, and decimal places are all in `js/data.js` under `pointDefinitions`.
 - **Translations** — All display strings (titles, units, descriptions) are in the `translations` object in `js/data.js`.
 - **Icons** — All metric icons are inlined as SVG strings in `js/svg-icons.js`, keyed by point ID.
@@ -260,9 +311,9 @@ Each HTML file has its own translations object. Add an entry for your new locale
 
 ```js
 const languages = {
-    'en': { 'page-title': 'MagicMirror Appliance', 'profile-button': 'Continue', 'sample-results-button': 'Sample Results' },
-    'zh': { 'page-title': '智能健康魔镜',           'profile-button': '继续',     'sample-results-button': '样本结果' },
-    'fr': { 'page-title': 'MagicMirror Appliance', 'profile-button': 'Continuer', 'sample-results-button': 'Résultats exemples' }
+    'en': { 'profile-button': 'Continue', 'sample-results-button': 'Sample Results' },
+    'zh': { 'profile-button': '继续',     'sample-results-button': '样本结果' },
+    'fr': { 'profile-button': 'Continuer', 'sample-results-button': 'Résultats exemples' }
     //       ^^^ add your locale here
 };
 ```
@@ -304,7 +355,6 @@ All metric titles, units, and info-dialog descriptions live in the `translations
 ```js
 "DFXPOINT_TITLE:HR_BPM": {
     "default": "Heart Rate",
-    "en":      "Heart Rate",
     "zh":      "心率"
 }
 ```
@@ -314,7 +364,6 @@ To add French, append your locale to every entry that needs it:
 ```js
 "DFXPOINT_TITLE:HR_BPM": {
     "default": "Heart Rate",
-    "en":      "Heart Rate",
     "zh":      "心率",
     "fr":      "Fréquence cardiaque"
 }

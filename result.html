@@ -2,22 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Measurement Results</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: "Work Sans", sans-serif;
+            font-family: "Open Sans", sans-serif;
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            background: #000;
+            color: #fff;
+        }
+
+        #bg-wallpaper {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: url('assets/imgs/common_wallpaper.png') center center / cover no-repeat;
+        }
+
+        .sticky-top-cards {
+            position: fixed;
+            top: 0;
+            left: 1em;
+            right: 1em;
+            z-index: 50;
+            max-width: 55em;
+            margin-left: auto;
+            margin-right: auto;
+            background: url('assets/imgs/common_wallpaper.png') center center / cover no-repeat fixed;
+            padding-bottom: 4px;
         }
 
         #main-header {
             text-align: center;
-            color: #F65F77;
+            color: #005DBC;
             font-weight: 600;
             margin: 20px 0;
         }
@@ -27,27 +49,25 @@
         }
 
         .result {
-            display: flex;
+            display: grid;
+            grid-template-columns: 40px 1fr auto auto;
+            grid-template-rows: auto auto;
+            column-gap: 10px;
             align-items: center;
-            margin: 10px 0;
-            position: relative;
-            font-size: 1.1em;
-        }
-
-        .result:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: -5px;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 12px 14px;
+            margin: 6px 0;
+            background: rgba(10,20,40,0.72);
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 14px;
+            font-size: 1.2em;
         }
 
         .result-icon {
-            margin-right: 10px;
-            width: 30px;
-            height: 30px;
-            color: #023676;
+            grid-column: 1;
+            grid-row: 1;
+            width: 32px;
+            height: 32px;
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -63,24 +83,25 @@
         .result-icon.fallback {
             font-size: 20px;
             text-align: center;
-            line-height: 30px;
+            line-height: 32px;
             color: currentColor;
         }
 
         .result-name-wrapper {
-            flex: 0 1 auto;
+            grid-column: 2;
+            grid-row: 1;
             min-width: 0;
-            margin-right: 10px;
         }
 
         .result-name {
-            margin-right: 0;
+            color: #fff;
+            font-size: 1.15em;
         }
 
         .result-info-icon {
-            border: 1px solid transparent;
-            background-color: rgba(2, 54, 118, 0.08);
-            color: #023676;
+            border: none;
+            background-color: white;
+            color: #1a2335;
             border-radius: 50%;
             width: 14px;
             height: 14px;
@@ -101,6 +122,10 @@
             margin-right: 0;
         }
 
+        #starsContainer .result-info-icon {
+            align-self: flex-start;
+        }
+
         .result-info-icon:hover,
         .result-info-icon:active,
         .result-info-icon:focus {
@@ -109,31 +134,213 @@
         }
 
         .result-value {
-            margin-left: auto;
-            font-size: 2em;
-            font-weight: bold;
+            grid-column: 3;
+            grid-row: 1;
+            margin-left: 8px;
+            font-size: 1.55em;
+            color: white;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 475px) {
+            .result-value {
+                font-size: 1.25em;
+                white-space: normal;
+                max-width: 40vw;
+                text-align: right;
+            }
         }
 
         .result-unit {
-            margin-left: 0.4em;
-            font-size: 0.9em;
-            color: #333333;
+            grid-column: 4;
+            grid-row: 1;
+            margin-left: 0.3em;
+            font-size: 0.95em;
+            color: #aaa;
+            align-self: flex-end;
+            padding-bottom: 0.15em;
+        }
+
+        /* Inline gauge bar */
+        .result-gauge-wrapper {
+            grid-column: 1 / -1;
+            grid-row: 2;
+            padding-top: 8px;
+        }
+
+        .result-gauge-track {
+            display: flex;
+            gap: 3px;
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .result-gauge-segment {
+            flex: 1;
+        }
+
+        .result-gauge-pointer-wrapper {
+            position: relative;
+            height: 20px;
+            margin-top: -2px;
+        }
+
+        .result-gauge-pointer {
+            position: absolute;
+            transform: translateX(-50%);
+            top: 0;
+        }
+
+        /* Wellness dial */
+        .wellness-dial-card {
+            background: rgba(10,20,40,0.72);
+            border: 1.5px solid rgba(255,255,255,0.35);
+            border-radius: 20px;
+            padding: 20px 8px 8px;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .wellness-dial-card svg {
+            width: 90%;
+            max-width: 480px;
+            height: auto;
+            display: block;
+            margin: 0 auto -18px;
+        }
+
+        .wellness-dial-label {
+            margin: 0 0 0;
+            color: #fff;
+            font-size: 1.75em;
+            font-weight: bold;
+            letter-spacing: 0.04em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .wellness-dial-streak {
+            width: 68%;
+            height: 2px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, transparent, #56AAFF 38%, #56AAFF 62%, transparent);
+            margin: 12px auto 2px;
+        }
+
+        .wellness-dial-label .result-info-icon {
+            margin-left: 2px;
+            align-self: flex-start;
+            margin-top: 1px;
+            font-size: 0.38em;
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Multi-year CVD slider */
+        .multi-year-result {
+            display: block;
+            padding-bottom: 0.35rem;
+        }
+
+        .multi-year-main-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .multi-year-main-row .result-name-wrapper {
+            flex: 1;
+        }
+
+        .multi-year-selected-label {
+            color: #aaa;
+            font-size: 0.85em;
+            line-height: 1.2;
+            margin: -0.15rem 0 0.25rem;
+            text-align: right;
+        }
+
+        .multi-year-slider-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #aaa;
+            font-size: 0.75em;
+        }
+
+        .multi-year-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            flex: 1;
+            min-width: 0;
+            height: 20px;
+            background: transparent;
+            outline: none;
+            cursor: pointer;
+            --slider-fill: 50%;
+        }
+
+        .multi-year-slider::-webkit-slider-runnable-track {
+            height: 4px;
+            border-radius: 2px;
+            background: linear-gradient(
+                to right,
+                #fff 0%, #fff var(--slider-fill),
+                rgba(255,255,255,0.25) var(--slider-fill), rgba(255,255,255,0.25) 100%
+            );
+        }
+
+        .multi-year-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+        }
+
+        .multi-year-slider::-moz-range-track {
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.25);
+        }
+
+        .multi-year-slider::-moz-range-progress {
+            height: 4px;
+            border-radius: 2px;
+            background: #fff;
+        }
+
+        .multi-year-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+        }
+
+        .multi-year-slider:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 3px;
         }
 
         h2 {
-            position: relative;
-            padding-bottom: 5px;
-            color: #023676;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            color: #56AAFF;
+            font-size: 2em;
+            font-weight: 700;
+            letter-spacing: 0;
         }
 
-        h2::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-bottom: 1px solid #255be3;
-        }
 
         .star {
             clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
@@ -144,7 +351,7 @@
         }
 
         .greenBackground {
-            background-color: #4CAF50;
+            background-color: #00de93;
         }
 
         .greyBackground {
@@ -152,68 +359,71 @@
         }
 
         .green {
-            color: #4CAF50;
+            color: #00de93;
         }
 
         .lightGreen {
-            color: #8BC34A;
+            color: #72e9b4;
         }
 
         .yellow {
-            color: #e8b428;
+            color: #ffeb78;
         }
 
         .lightRed {
-            color: #fd929d;
+            color: #ff8286;
         }
 
         .red {
-            color: #F44336;
+            color: #ff444f;
         }
 
         .grey {
-            color: #333333;
+            color: #aaa;
         }
 
-        #timestamp {
-            color: #6e6e6e;
-            text-align: center;
-            font-weight: bold;
-        }
+
 
         #main-container {
             margin: 1em;
         }
 
+        .info-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(10,20,40,0.72);
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin: 8px 0 10px;
+        }
+
         #measurementInfo {
-            height: 1.5em;
             align-content: center;
-            text-align: center;
-            color: #333333;
+            color: #aaa;
             font-size: 1em;
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin: 1em;
         }
 
         #measurementInfo span+span {
-            border-left: solid #909090 1px;
+            border-left: solid rgba(255,255,255,0.25) 1px;
         }
 
         #snrContainer {
             font-weight: bold;
             padding-left: 0.5em;
             padding-right: 0.5em;
+            color: #fff;
         }
 
         #starsContainer {
             padding-left: 0.5em;
             padding-right: 0.5em;
-            display: block;
-            height: max-content;
-            width: max-content;
-            height: 100%;
+            display: flex;
+            align-items: center;
+            height: 1.5em;
             white-space: nowrap;
         }
 
@@ -229,7 +439,7 @@
             text-align: center;
             padding: 60px 20px;
             font-size: 1.1rem;
-            color: #6e6e6e;
+            color: #999;
         }
 
         @keyframes spin {
@@ -240,7 +450,7 @@
             width: 40px;
             height: 40px;
             border: 4px solid #e0e0e0;
-            border-top-color: #023676;
+            border-top-color: #005DBC;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
@@ -251,29 +461,22 @@
             border-radius: 8px;
             padding: 20px;
             text-align: center;
-            color: #c62828;
+            color: #fff;
+            background: #b71c1c;
             margin: 20px auto;
             max-width: 55em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
         }
 
-        .back-button {
-            background: none;
-            color: #023676;
-            border: none;
-            padding: 10px 1em;
-            font-size: 1rem;
-            cursor: pointer;
-            display: block;
-        }
 
-        .back-button:hover {
-            opacity: 0.7;
-        }
 
         /* Navigation buttons footer */
         footer {
-            background-color: #e3e3e3;
-            color: #363636;
+            background-color: transparent;
+            color: #fff;
             padding: 20px 0;
             text-align: center;
         }
@@ -288,7 +491,7 @@
 
         .button {
             padding: 10px 28px;
-            font-family: "Work Sans", sans-serif;
+            font-family: "Open Sans", sans-serif;
             font-size: 1rem;
             font-weight: 600;
             border: none;
@@ -307,7 +510,7 @@
         }
 
         .button-secondary {
-            background: #023676;
+            background: #005DBC;
             color: white;
         }
 
@@ -328,10 +531,10 @@
         }
 
         .point-info-dialog {
-            background: #ffffff;
+            background: #1a1a1a;
             border-radius: 12px;
             max-width: 520px;
-            max-height: 80vh;
+            max-height: calc(100% - 2rem);
             width: 100%;
             padding: 1.5rem;
             box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
@@ -342,7 +545,7 @@
         .point-info-title {
             margin-top: 0;
             margin-bottom: 0.5rem;
-            color: #023676;
+            color: #56AAFF;
         }
 
         .point-info-close {
@@ -351,7 +554,7 @@
             right: 0.75rem;
             border: none;
             background: none;
-            color: #023676;
+            color: #aaa;
             font-weight: 600;
             cursor: pointer;
             font-size: 24px;
@@ -383,8 +586,8 @@
         }
 
         .point-info-segments {
-            background: linear-gradient(135deg, #f7f9ff 0%, #eef1fb 100%);
-            border: 1px solid #e1e7fb;
+            background: linear-gradient(135deg, #1a1f2e 0%, #151922 100%);
+            border: 1px solid #2a3050;
             border-radius: 18px;
             padding: 1rem 1.25rem 1.35rem;
         }
@@ -395,14 +598,6 @@
             text-align: center;
         }
 
-        .point-info-segment-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            color: #5d6276;
-            margin-top: 0.75rem;
-        }
-
         .point-info-segments-track-wrapper {
             position: relative;
             margin-top: 0.8rem;
@@ -411,10 +606,11 @@
         .point-info-segments-track {
             position: relative;
             display: flex;
+            gap: 3px;
             height: 12px;
             border-radius: 999px;
             overflow: hidden;
-            background-color: #dfe4f5;
+            background-color: #333;
         }
 
         .point-info-segment-block { flex: 1; }
@@ -433,18 +629,18 @@
             font-size: 0.9rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            color: #717894;
+            color: #aaa;
         }
 
         .point-info-markdown {
-            color: #1c1f2d;
+            color: #eee;
             font-size: 0.95rem;
             line-height: 1.55;
             word-break: break-word;
         }
 
         .point-info-markdown h3,
-        .point-info-markdown h4 { margin: 1rem 0 0.35rem; color: #023676; }
+        .point-info-markdown h4 { margin: 1rem 0 0.35rem; color: #56AAFF; }
 
         .point-info-markdown p { margin: 0.4rem 0; }
 
@@ -458,9 +654,9 @@
         }
 
         .point-info-markdown th,
-        .point-info-markdown td { border: 1px solid #e0e2eb; padding: 0.5rem; text-align: left; }
+        .point-info-markdown td { border: 1px solid #444; padding: 0.5rem; text-align: left; }
 
-        .point-info-markdown th { background: #f5f7fb; font-weight: 600; }
+        .point-info-markdown th { background: #222; font-weight: 600; }
 
         .point-info-markdown a { color: #255be3; text-decoration: none; }
         .point-info-markdown a:hover { text-decoration: underline; }
@@ -479,7 +675,7 @@
             margin-top: 1rem;
             margin-bottom: 0.25rem;
             font-weight: 600;
-            color: #023676;
+            color: #56AAFF;
         }
 
         .point-info-scale-list { list-style: none; padding: 0; margin: 0.5rem 0 0; }
@@ -499,25 +695,79 @@
             flex-shrink: 0;
         }
 
-        .point-info-color-swatch.green     { background-color: #4CAF50; }
-        .point-info-color-swatch.lightGreen { background-color: #8BC34A; }
-        .point-info-color-swatch.yellow    { background-color: #e8b428; }
-        .point-info-color-swatch.lightRed  { background-color: #fd929d; }
-        .point-info-color-swatch.red       { background-color: #F44336; }
+        .point-info-color-swatch.green     { background-color: #00de93; }
+        .point-info-color-swatch.lightGreen { background-color: #72e9b4; }
+        .point-info-color-swatch.yellow    { background-color: #ffeb78; }
+        .point-info-color-swatch.lightRed  { background-color: #ff8286; }
+        .point-info-color-swatch.red       { background-color: #ff444f; }
         .point-info-color-swatch.grey      { background-color: #909090; }
 
         .point-info-subsection h3 {
             margin-top: 1rem;
             margin-bottom: 0.25rem;
-            color: #023676;
+            color: #005DBC;
             font-size: 1.05rem;
         }
 
         body.info-dialog-open { overflow: hidden; }
 
+        /* QR share overlay */
+        .qr-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .qr-overlay.visible { display: flex; }
+        .qr-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 32px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            max-width: 480px;
+            width: 90%;
+        }
+        .qr-card-title {
+            color: #000;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        #qr-canvas-container canvas,
+        #qr-canvas-container img { display: block; }
+        .qr-close-btn {
+            background: #111;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 32px;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        /* Info bar action buttons (Exit / Share) */
+        .info-bar-btn {
+            background: #1a1a1a;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.35);
+            border-radius: 7px;
+            padding: 7px 16px;
+            font-size: 0.88rem;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .info-bar-btn:hover { background: #2a2a2a; }
+
         .footer-disclaimer {
             font-size: 0.75rem;
-            color: #666;
+            color: #999;
             text-align: center;
             white-space: pre-line;
             line-height: 1.4;
@@ -526,11 +776,9 @@
     </style>
 </head>
 <body>
+    <div id="bg-wallpaper"></div>
     <div id="main-container">
-        <button class="back-button" onclick="backToHome()" data-i18n="btn_back">← Back</button>
-        <div id="main-header"><h1 data-i18n="title">Measurement Results</h1></div>
         <div id="measurementInfo"></div>
-        <div id="timestamp"></div>
 
         <div id="loadingMessage" class="loading">
             <div class="loading-spinner"></div>
@@ -538,32 +786,43 @@
         </div>
 
         <div id="errorMessage" class="error-message" style="display: none;">
-            Unable to load measurement results
+            <p id="errorText">Unable to load measurement results</p>
+            <button class="info-bar-btn" style="margin-top:16px" onclick="backToHome()">Exit</button>
         </div>
 
         <div id="resultsContent" style="display: none;">
             <div id="results-container"></div>
         </div>
     </div>
-    <footer>
-        <div class="button-container">
-            <button class="button button-secondary" onclick="backToHome()" data-i18n="btn_home">
-                Back to Home
-            </button>
+    <!-- QR code share overlay -->
+    <div class="qr-overlay" id="qr-overlay" role="dialog" aria-modal="true">
+        <div class="qr-card">
+            <div class="qr-card-title" id="qr-card-title">Scan the QR Code below to get your results on your phone</div>
+            <div id="qr-canvas-container"></div>
+            <button class="qr-close-btn" onclick="closeQROverlay()">Close</button>
         </div>
+    </div>
+
+    <footer>
         <div id="disclaimer-container"></div>
     </footer>
 
     <script src="js/vendor/float16.min.js"></script>
+    <script src="js/vendor/qrcode.min.js"></script>
     <script src="js/common.js"></script>
     <script src="js/data.js"></script>
-    <script src="js/svg-icons.js"></script>
     <script src="js/point-info-dialog.js"></script>
     <script src="js/results-app.js"></script>
+    <script src="config.js"></script>
     <script>
         // Dev helper: decode microsite-style ?r= URL param into sessionStorage
         (function () {
-            const r = new URLSearchParams(window.location.search).get('r');
+            let r = new URLSearchParams(window.location.search).get('r');
+            if (!r) {
+                // Native simulation: index.html Sample Results button stores encoded data here
+                r = sessionStorage.getItem('nativeSampleEncoded');
+                if (r) sessionStorage.removeItem('nativeSampleEncoded');
+            }
             if (!r || sessionStorage.getItem('measurementData')) return;
             try {
                 const { getFloat16 } = float16;
@@ -585,7 +844,12 @@
                 const reverseMap = {};
                 const defs = DeepAffexWebResultsData.definitions.pointDefinitions;
                 for (const key of Object.keys(defs)) reverseMap[crc16hash(key)] = key;
-                ['SNR', 'STAR_RATING'].forEach(k => reverseMap[crc16hash(k)] = k);
+                ['SNR', 'STAR_RATING', 'BODY_TEMPERATURE'].forEach(k => reverseMap[crc16hash(k)] = k);
+                // Add dynamic multi-value keys (COUNT + 0-indexed primary path, 1-indexed fallback path)
+                ['CVD_MULTI_YEAR_RISK_PROBS'].forEach(base => {
+                    reverseMap[crc16hash(`${base}_COUNT`)] = `${base}_COUNT`;
+                    for (let i = 0; i <= 20; i++) reverseMap[crc16hash(`${base}_${i}`)] = `${base}_${i}`;
+                });
 
                 const raw = atob(decodeURIComponent(r));
                 const bytes = Uint8Array.from(raw, c => c.charCodeAt(0));
@@ -593,14 +857,17 @@
                     throw new Error('Invalid NuraQR header');
 
                 const tsNum = new DataView(bytes.buffer, 3, 4).getUint32(0, true);
-                const ts = tsNum.toString();
-                const timestamp = new Date(
+                const ts = tsNum.toString().padStart(10, '0');
+                const parsedTs = new Date(
                     parseInt('20' + ts.slice(0, 2)), parseInt(ts.slice(2, 4)) - 1,
                     parseInt(ts.slice(4, 6)), parseInt(ts.slice(6, 8)), parseInt(ts.slice(8, 10))
                 );
+                const tsYear = parsedTs.getFullYear();
+                const timestamp = (!isNaN(parsedTs.getTime()) && tsYear >= 2020 && tsYear <= 2099)
+                    ? parsedTs : null;
 
                 const payload = bytes.slice(7);
-                const results = { timestamp: timestamp.toISOString() };
+                const results = timestamp ? { timestamp: timestamp.toISOString() } : {};
                 for (let i = 0; i + 3 < payload.length; i += 4) {
                     const hash = `${payload[i]}${payload[i + 1]}`;
                     const pointID = reverseMap[hash];
@@ -609,9 +876,6 @@
                 }
 
                 sessionStorage.setItem('measurementData', JSON.stringify(results));
-                const url = new URL(window.location.href);
-                url.searchParams.delete('r');
-                window.location.replace(url.toString());
             } catch (e) {
                 console.error('Failed to decode ?r= param:', e);
             }
@@ -631,16 +895,193 @@
             });
         }
 
+        // ------------------------------------------------------------------
+        // Standalone mode: hide kiosk navigation when page is opened via QR
+        // ?r= present on a user's phone (no AndroidBridge) → standalone
+        // ?r= present on MMA device (AndroidBridge available) → kiosk, show controls
+        // ------------------------------------------------------------------
+        const _urlParams = new URLSearchParams(window.location.search);
+        const isStandalone = _urlParams.has('r') && typeof AndroidBridge === 'undefined';
+        // ------------------------------------------------------------------
+        // NuraQR v1 encoder — mirrors the Android MeasurementResultViewModel
+        // ------------------------------------------------------------------
+        function crc16bytes(str) {
+            let crc = 0xFFFF;
+            for (let i = 0; i < str.length; i++) {
+                crc ^= str.charCodeAt(i);
+                for (let j = 0; j < 8; j++) {
+                    const odd = crc & 1; crc >>= 1;
+                    if (odd) crc ^= 0xA001;
+                }
+            }
+            return [crc & 0xFF, (crc >> 8) & 0xFF]; // little-endian [lsb, msb]
+        }
+
+        function encodeResultsToNuraQR(results) {
+            const { setFloat16 } = float16;
+            // Timestamp bytes (yyMMddHHmm as uint32 little-endian)
+            const ts = results.timestamp ? new Date(results.timestamp) : new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const tsNum = parseInt(
+                String(ts.getFullYear()).slice(2) +
+                pad(ts.getMonth() + 1) +
+                pad(ts.getDate()) +
+                pad(ts.getHours()) +
+                pad(ts.getMinutes())
+            );
+            const tsBuf = new Uint8Array(4);
+            new DataView(tsBuf.buffer).setUint32(0, tsNum, true);
+
+            // Results payload
+            const chunks = [];
+            for (const [key, value] of Object.entries(results)) {
+                if (key === 'timestamp') continue;
+                if (typeof value !== 'number' || !isFinite(value)) continue;
+                const [lsb, msb] = crc16bytes(key);
+                const f16buf = new ArrayBuffer(2);
+                setFloat16(new DataView(f16buf), 0, value, true);
+                const f16 = new Uint8Array(f16buf);
+                chunks.push(lsb, msb, f16[0], f16[1]);
+            }
+
+            const header = [0x4e, 0x51, 0x31, ...tsBuf];
+            const allBytes = new Uint8Array([...header, ...chunks]);
+            const base64 = btoa(String.fromCharCode(...allBytes));
+            return encodeURIComponent(base64);
+        }
+
+        function buildShareURL(results) {
+            const encoded = encodeResultsToNuraQR(results);
+            const mid = results.measurementID || '';
+            const cfgUrl = (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.qrCodeResults?.url) || '';
+            const base = cfgUrl || (window.location.origin + window.location.pathname);
+            const sep = base.includes('?') ? '&' : '?';
+            return `${base}${sep}r=${encoded}&mid=${encodeURIComponent(mid)}`;
+        }
+
+        // ------------------------------------------------------------------
+        // QR overlay
+        // ------------------------------------------------------------------
+        let _qrInstance = null;
+
+        function openQROverlay() {
+            const overlay = document.getElementById('qr-overlay');
+            overlay.classList.add('visible');
+            document.body.classList.add('info-dialog-open');
+            overlay.onclick = e => { if (e.target === overlay) closeQROverlay(); };
+
+            const container = document.getElementById('qr-canvas-container');
+            container.innerHTML = '';
+            try {
+                const url = buildShareURL(measurementData);
+                console.log('[QR] URL length:', url.length, url.slice(0, 80) + '...');
+                _qrInstance = new QRCode(container, {
+                    text: url,
+                    width: 280,
+                    height: 280,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            } catch (err) {
+                console.error('[QR] Failed to generate QR code:', err);
+                container.innerHTML = '<p style="color:#c00;padding:16px;text-align:center;font-size:0.85rem">' +
+                    'QR generation failed: ' + err.message + '</p>';
+            }
+        }
+
+        function closeQROverlay() {
+            document.getElementById('qr-overlay').classList.remove('visible');
+            document.body.classList.remove('info-dialog-open');
+        }
+
+        // ------------------------------------------------------------------
+        // Info bar: standalone → show date; kiosk → show [Exit] [Share]
+        // ------------------------------------------------------------------
+        function maybeAddShareButton() {
+            const infoBar = document.querySelector('.info-bar');
+            if (!infoBar || isStandalone) return;
+
+            const btnGroup = document.createElement('div');
+            btnGroup.style.cssText = 'display:flex;align-items:center;gap:8px';
+
+            const exitBtn = document.createElement('button');
+            exitBtn.className = 'info-bar-btn';
+            exitBtn.textContent = 'Exit';
+            exitBtn.onclick = backToHome;
+            btnGroup.appendChild(exitBtn);
+
+            const tryAgainBtn = document.createElement('button');
+            tryAgainBtn.className = 'info-bar-btn';
+            tryAgainBtn.textContent = 'Try Again';
+            tryAgainBtn.onclick = tryAgain;
+            btnGroup.appendChild(tryAgainBtn);
+
+            const qrEnabled = typeof APP_CONFIG !== 'undefined' && APP_CONFIG.qrCodeResults?.enabled;
+            if (qrEnabled) {
+                const shareBtn = document.createElement('button');
+                shareBtn.className = 'info-bar-btn';
+                shareBtn.textContent = 'Share';
+                shareBtn.onclick = openQROverlay;
+                btnGroup.appendChild(shareBtn);
+            }
+
+            infoBar.appendChild(btnGroup);
+        }
+
         let measurementData = null;
 
         function isAndroidBridgeAvailable() {
-            return typeof AndroidBridge !== 'undefined' && AndroidBridge !== null;
+            return typeof AndroidBridge !== 'undefined' && AndroidBridge !== null
+                && typeof AndroidBridge.onJSRequest === 'function';
+        }
+
+        // WebResultScreen injects a minimal bridge with only onJSNavigateBack (no onJSRequest)
+        function isWebResultBridge() {
+            return typeof AndroidBridge !== 'undefined' && AndroidBridge !== null
+                && typeof AndroidBridge.onJSNavigateBack === 'function';
         }
 
         // Called by Android native to deliver results
         function setMeasurementResults(paramsJson) {
             try {
-                measurementData = JSON.parse(paramsJson);
+                const raw = JSON.parse(paramsJson);
+
+                if (raw.Channels && raw.Multiplier) {
+                    // New raw DeepAffex format: {MeasurementID, Multiplier, Channels: {KEY: {Data:[...]}}}
+                    const multiplier = raw.Multiplier;
+                    const result = {};
+                    if (raw.MeasurementID) result.measurementID = raw.MeasurementID;
+                    for (const [key, channel] of Object.entries(raw.Channels)) {
+                        const data = channel.Data;
+                        if (!data || data.length === 0) continue;
+                        if (data.length > 1 && key === 'CVD_MULTI_YEAR_RISK_PROBS') {
+                            // Expand to _COUNT + indexed keys for the multi-year slider
+                            result[`${key}_COUNT`] = data.length;
+                            data.forEach((v, i) => result[`${key}_${i}`] = v / multiplier);
+                        } else {
+                            result[key] = data[0] / multiplier;
+                        }
+                    }
+                    // Pick up top-level keys injected by Android (e.g. STAR_RATING) that are
+                    // not part of the SDK Channels object.
+                    const SKIP_KEYS = new Set(['MeasurementID', 'MeasurementDataID', 'MeasurementResultID', 'Multiplier', 'Channels', 'timestamp']);
+                    for (const [key, val] of Object.entries(raw)) {
+                        if (SKIP_KEYS.has(key) || key in result) continue;
+                        const n = parseFloat(val);
+                        result[key] = !isNaN(n) && String(val).trim() !== '' ? n : val;
+                    }
+                    measurementData = result;
+                } else {
+                    // Flat format from ?r= decode (already numbers) or old native bridge (string values)
+                    measurementData = Object.fromEntries(
+                        Object.entries(raw).map(([k, v]) => {
+                            const n = parseFloat(v);
+                            return [k, !isNaN(n) && String(v).trim() !== '' ? n : v];
+                        })
+                    );
+                }
+
                 displayResults(measurementData);
             } catch (error) {
                 console.error('Error parsing measurement data:', error);
@@ -667,13 +1108,21 @@
                 locale
             );
             renderDisclaimer(locale);
+            maybeAddShareButton();
+            requestAnimationFrame(function() {
+                var fixed = document.querySelector('.sticky-top-cards');
+                if (fixed) {
+                    document.getElementById('main-container').style.paddingTop = fixed.offsetHeight + 'px';
+                }
+            });
         }
 
         function showError(message) {
             document.getElementById('loadingMessage').style.display = 'none';
             document.getElementById('resultsContent').style.display = 'none';
-            document.getElementById('errorMessage').textContent = message;
-            document.getElementById('errorMessage').style.display = 'block';
+            const errEl = document.getElementById('errorMessage');
+            document.getElementById('errorText').textContent = message;
+            errEl.style.display = 'block';
         }
 
         function startNewMeasurement() {
@@ -691,7 +1140,29 @@
             }
         }
 
+        function tryAgain() {
+            const saved = localStorage.getItem('lastProfileData');
+            const params = saved ? JSON.parse(saved) : {};
+            if (isAndroidBridgeAvailable()) {
+                try {
+                    AndroidBridge.onJSRequest(JSON.stringify({
+                        type: "navigate",
+                        data: JSON.stringify({ destination: "measurement", params })
+                    }));
+                } catch (error) {
+                    console.error('Failed to start new measurement:', error);
+                }
+            } else if (isWebResultBridge()) {
+                // WebResultScreen (public kiosk): navigate back and let native handle re-scan
+                AndroidBridge.onJSNavigateBack();
+            } else {
+                window.location.href = 'profile.html';
+            }
+        }
+
         function backToHome() {
+            localStorage.removeItem('lastProfileData');
+            sessionStorage.removeItem('measurementData');
             if (isAndroidBridgeAvailable()) {
                 try {
                     AndroidBridge.onJSRequest(JSON.stringify({
@@ -701,6 +1172,9 @@
                 } catch (error) {
                     console.error('Failed to navigate to home:', error);
                 }
+            } else if (isWebResultBridge()) {
+                // WebResultScreen (public kiosk): navigate back to native home
+                AndroidBridge.onJSNavigateBack();
             } else {
                 window.location.href = 'index.html';
             }
@@ -719,7 +1193,6 @@
 
             const storedData = sessionStorage.getItem('measurementData');
             if (storedData) {
-                sessionStorage.removeItem('measurementData');
                 setMeasurementResults(storedData);
             } else {
                 showError('No measurement data found.');
