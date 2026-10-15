@@ -844,7 +844,7 @@
                 const reverseMap = {};
                 const defs = DeepAffexWebResultsData.definitions.pointDefinitions;
                 for (const key of Object.keys(defs)) reverseMap[crc16hash(key)] = key;
-                ['SNR', 'STAR_RATING', 'BODY_TEMPERATURE'].forEach(k => reverseMap[crc16hash(k)] = k);
+                ['SNR', 'STAR_RATING', 'BODY_TEMPERATURE', 'AGE_MMA'].forEach(k => reverseMap[crc16hash(k)] = k);
                 // Add dynamic multi-value keys (COUNT + 0-indexed primary path, 1-indexed fallback path)
                 ['CVD_MULTI_YEAR_RISK_PROBS'].forEach(base => {
                     reverseMap[crc16hash(`${base}_COUNT`)] = `${base}_COUNT`;
