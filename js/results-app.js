@@ -83,6 +83,11 @@ function renderResults(results, definitions, sections, pageLocale) {
                 result = getPointResult("BODY_TEMPERATURE", results);
             }
 
+            if (pointID === "AGE") {
+                const ageMmaResult = getPointResult("AGE_MMA", results);
+                if (ageMmaResult !== undefined && !isNaN(ageMmaResult)) result = ageMmaResult;
+            }
+
             let pointDefinition = definitions[pointID]
             if (!pointDefinition) continue;
 
