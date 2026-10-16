@@ -230,6 +230,56 @@
             cursor: pointer;
             margin-top: 10px;
         }
+
+        /* Unit toggle */
+        .unit-toggle {
+            display: flex;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .unit-toggle-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: #aaa;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .unit-toggle-btn.active {
+            background: #005DBC;
+            color: #fff;
+        }
+
+        /* Imperial height: feet + inches side by side */
+        .height-imperial-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .height-imperial-row .imperial-field {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .height-imperial-row .form-input {
+            flex: 1;
+        }
+
+        .unit-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -242,6 +292,12 @@
         </div>
 
         <div class="form-container">
+            <!-- Unit system toggle -->
+            <div class="unit-toggle">
+                <button type="button" class="unit-toggle-btn active" id="btn-metric" onclick="setUnits('metric')" data-i18n="opt_metric">Metric</button>
+                <button type="button" class="unit-toggle-btn" id="btn-imperial" onclick="setUnits('imperial')" data-i18n="opt_imperial">Imperial</button>
+            </div>
+
             <form id="profileForm">
 
                 <!-- Partner ID (optional) -->
@@ -264,7 +320,7 @@
 
                 <!-- Weight -->
                 <div class="form-group">
-                    <label class="form-label" for="weight"><span data-i18n="lbl_weight">Weight (kg)</span> <span class="required">*</span></label>
+                    <label class="form-label" for="weight"><span id="lbl-weight" data-i18n="lbl_weight">Weight (kg)</span> <span class="required">*</span></label>
                     <input type="number" id="weight" name="weight" class="form-input"
                         placeholder="Enter your weight" min="30" max="300" step="0.1" required data-i18n-placeholder="ph_weight">
                     <div class="error-message" id="weightError" data-i18n="err_weight">Please enter a valid weight (30–300 kg)</div>
@@ -272,9 +328,21 @@
 
                 <!-- Height -->
                 <div class="form-group">
-                    <label class="form-label" for="height"><span data-i18n="lbl_height">Height (cm)</span> <span class="required">*</span></label>
+                    <label class="form-label"><span id="lbl-height" data-i18n="lbl_height">Height (cm)</span> <span class="required">*</span></label>
+                    <!-- Metric: single cm input -->
                     <input type="number" id="height" name="height" class="form-input"
                         placeholder="Enter your height" min="120" max="220" required data-i18n-placeholder="ph_height">
+                    <!-- Imperial: ft + in inputs -->
+                    <div class="height-imperial-row" id="height-imperial" style="display:none">
+                        <div class="imperial-field">
+                            <input type="number" id="heightFt" class="form-input" placeholder="ft" min="3" max="7">
+                            <span class="unit-label">ft</span>
+                        </div>
+                        <div class="imperial-field">
+                            <input type="number" id="heightIn" class="form-input" placeholder="in" min="0" max="11">
+                            <span class="unit-label">in</span>
+                        </div>
+                    </div>
                     <div class="error-message" id="heightError" data-i18n="err_height">Please enter a valid height (120–220 cm)</div>
                     <div class="error-message" id="bmiError" data-i18n="err_bmi">The entered combination of height and weight results in an invalid BMI (must be 10–65)</div>
                 </div>
@@ -367,15 +435,20 @@
                 title: 'User Profile', subtitle: 'Please fill in your information to start measurement',
                 btn_back: '← Back', btn_next: 'Next', btn_skip: 'Skip Profile', btn_processing: 'Processing...', btn_cancel: 'Cancel',
                 lbl_partner_id: 'Partner ID', lbl_optional: '(optional)',
-                lbl_age: 'Age', lbl_weight: 'Weight (kg)', lbl_height: 'Height (cm)',
+                lbl_age: 'Age',
+                lbl_weight: 'Weight (kg)', lbl_weight_imperial: 'Weight (lbs)',
+                lbl_height: 'Height (cm)', lbl_height_imperial: 'Height',
                 lbl_gender: 'Gender', lbl_smoking: 'Do you smoke?',
                 lbl_diabetes: 'Are you diabetic?', lbl_bp_med: 'Are you taking blood pressure medication?',
                 opt_male: 'Male', opt_female: 'Female', opt_yes: 'Yes', opt_no: 'No',
                 opt_type1: 'Type 1', opt_type2: 'Type 2',
+                opt_metric: 'Metric', opt_imperial: 'Imperial',
                 err_partner_id: 'Partner ID must be between 2 and 148 characters',
                 err_age: 'Please enter a valid age (18–120 years)',
                 err_weight: 'Please enter a valid weight (30–300 kg)',
+                err_weight_imperial: 'Please enter a valid weight (66–661 lbs)',
                 err_height: 'Please enter a valid height (120–220 cm)',
+                err_height_imperial: 'Please enter a valid height (3\'11\" – 7\'3\")',
                 err_bmi: 'The entered combination of height and weight results in an invalid BMI (must be 10–65)',
                 err_gender: 'Please select your gender', err_question: 'Please answer this question',
                 ph_partner_id: 'Enter partner ID', ph_age: 'Enter your age',
@@ -385,21 +458,28 @@
                 title: '用户信息', subtitle: '请填写信息以开始测量',
                 btn_back: '← 返回', btn_next: '下一步', btn_skip: '跳过', btn_processing: '处理中...', btn_cancel: '取消',
                 lbl_partner_id: '合作伙伴ID', lbl_optional: '(可选)',
-                lbl_age: '年龄', lbl_weight: '体重 (kg)', lbl_height: '身高 (cm)',
+                lbl_age: '年龄',
+                lbl_weight: '体重 (kg)', lbl_weight_imperial: '体重 (磅)',
+                lbl_height: '身高 (cm)', lbl_height_imperial: '身高',
                 lbl_gender: '性别', lbl_smoking: '您吸烟吗？',
                 lbl_diabetes: '您有糖尿病吗？', lbl_bp_med: '您正在服用血压药物吗？',
                 opt_male: '男', opt_female: '女', opt_yes: '是', opt_no: '否',
                 opt_type1: '1型', opt_type2: '2型',
+                opt_metric: '公制', opt_imperial: '英制',
                 err_partner_id: '合作伙伴ID必须在2到148个字符之间',
                 err_age: '请输入有效年龄（18-120岁）',
                 err_weight: '请输入有效体重（30-300 kg）',
+                err_weight_imperial: '请输入有效体重（66-661 磅）',
                 err_height: '请输入有效身高（120-220 cm）',
+                err_height_imperial: '请输入有效身高（3\'11\" – 7\'3\"）',
                 err_bmi: '身高和体重的组合导致BMI无效（必须为10-65）',
                 err_gender: '请选择性别', err_question: '请回答此问题',
                 ph_partner_id: '输入合作伙伴ID', ph_age: '输入年龄',
                 ph_weight: '输入体重', ph_height: '输入身高'
             }
         };
+
+        let currentUnits = localStorage.getItem('preferredUnits') || 'metric';
 
         function applyTranslations(lang) {
             const t = profileTranslations[lang] || profileTranslations['en'];
@@ -411,6 +491,67 @@
                 const key = el.getAttribute('data-i18n-placeholder');
                 if (t[key] !== undefined) el.placeholder = t[key];
             });
+            applyUnitLabels(lang);
+        }
+
+        function applyUnitLabels(lang) {
+            const t = profileTranslations[lang] || profileTranslations['en'];
+            const isImperial = currentUnits === 'imperial';
+            document.getElementById('lbl-weight').textContent = isImperial ? t.lbl_weight_imperial : t.lbl_weight;
+            document.getElementById('lbl-height').textContent = isImperial ? t.lbl_height_imperial : t.lbl_height;
+            document.getElementById('weightError').textContent = isImperial ? t.err_weight_imperial : t.err_weight;
+            document.getElementById('heightError').textContent = isImperial ? t.err_height_imperial : t.err_height;
+        }
+
+        function setUnits(unit) {
+            if (unit === currentUnits) return;
+            const prevUnits = currentUnits;
+            currentUnits = unit;
+            localStorage.setItem('preferredUnits', unit);
+
+            // Update toggle button states
+            document.getElementById('btn-metric').classList.toggle('active', unit === 'metric');
+            document.getElementById('btn-imperial').classList.toggle('active', unit === 'imperial');
+
+            // Convert existing weight value
+            const weightInput = document.getElementById('weight');
+            const weightVal = parseFloat(weightInput.value);
+            if (!isNaN(weightVal)) {
+                if (unit === 'imperial') {
+                    weightInput.value = Math.round(weightVal * 2.20462 * 10) / 10;
+                } else {
+                    weightInput.value = Math.round(weightVal / 2.20462 * 10) / 10;
+                }
+            }
+            weightInput.min = unit === 'imperial' ? '66' : '30';
+            weightInput.max = unit === 'imperial' ? '661' : '300';
+
+            // Show/hide height inputs and convert values
+            const heightMetric = document.getElementById('height');
+            const heightImperial = document.getElementById('height-imperial');
+            if (unit === 'imperial') {
+                const cmVal = parseInt(heightMetric.value);
+                heightMetric.style.display = 'none';
+                heightMetric.required = false;
+                heightImperial.style.display = 'flex';
+                if (!isNaN(cmVal) && cmVal > 0) {
+                    document.getElementById('heightFt').value = Math.floor(cmVal / 30.48);
+                    document.getElementById('heightIn').value = Math.round((cmVal % 30.48) / 2.54);
+                }
+            } else {
+                const ft = parseInt(document.getElementById('heightFt').value);
+                const inches = parseInt(document.getElementById('heightIn').value);
+                heightImperial.style.display = 'none';
+                heightMetric.style.display = '';
+                heightMetric.required = true;
+                if (!isNaN(ft) && ft > 0) {
+                    heightMetric.value = Math.round(ft * 30.48 + (isNaN(inches) ? 0 : inches) * 2.54);
+                }
+            }
+
+            const lang = localStorage.getItem('selectedLanguage') || 'en';
+            applyUnitLabels(lang);
+            document.querySelectorAll('.error-message').forEach(e => e.classList.remove('show'));
         }
 
         function isAndroidBridgeAvailable() {
@@ -454,9 +595,26 @@
             }
         }
 
+        function getMetricValues() {
+            const isImperial = currentUnits === 'imperial';
+            let weightKg, heightCm;
+            if (isImperial) {
+                const lbs = parseFloat(document.getElementById('weight').value);
+                weightKg = isNaN(lbs) ? NaN : Math.round(lbs / 2.20462 * 10) / 10;
+                const ft = parseInt(document.getElementById('heightFt').value);
+                const inches = parseInt(document.getElementById('heightIn').value);
+                heightCm = isNaN(ft) ? NaN : Math.round(ft * 30.48 + (isNaN(inches) ? 0 : inches) * 2.54);
+            } else {
+                weightKg = parseFloat(document.getElementById('weight').value);
+                heightCm = parseInt(document.getElementById('height').value);
+            }
+            return { weightKg, heightCm };
+        }
+
         function validateForm() {
             let isValid = true;
             document.querySelectorAll('.error-message').forEach(e => e.classList.remove('show'));
+            const isImperial = currentUnits === 'imperial';
 
             // Partner ID (optional, but if filled must be 2–148 chars)
             const partnerID = document.getElementById('partnerID').value.trim();
@@ -471,20 +629,40 @@
                 isValid = false;
             }
 
-            const weight = parseFloat(document.getElementById('weight').value);
-            if (!weight || weight < 30 || weight > 300) {
-                document.getElementById('weightError').classList.add('show');
-                isValid = false;
+            const weightRaw = parseFloat(document.getElementById('weight').value);
+            if (isImperial) {
+                if (!weightRaw || weightRaw < 66 || weightRaw > 661) {
+                    document.getElementById('weightError').classList.add('show');
+                    isValid = false;
+                }
+            } else {
+                if (!weightRaw || weightRaw < 30 || weightRaw > 300) {
+                    document.getElementById('weightError').classList.add('show');
+                    isValid = false;
+                }
             }
 
-            const height = parseInt(document.getElementById('height').value);
-            if (!height || height < 120 || height > 220) {
-                document.getElementById('heightError').classList.add('show');
-                isValid = false;
+            if (isImperial) {
+                const ft = parseInt(document.getElementById('heightFt').value);
+                const inches = parseInt(document.getElementById('heightIn').value);
+                const validFt = ft >= 3 && ft <= 7;
+                const validIn = !isNaN(inches) && inches >= 0 && inches <= 11;
+                const heightCm = validFt ? Math.round(ft * 30.48 + (isNaN(inches) ? 0 : inches) * 2.54) : NaN;
+                if (!validFt || !validIn || heightCm < 120 || heightCm > 220) {
+                    document.getElementById('heightError').classList.add('show');
+                    isValid = false;
+                }
+            } else {
+                const height = parseInt(document.getElementById('height').value);
+                if (!height || height < 120 || height > 220) {
+                    document.getElementById('heightError').classList.add('show');
+                    isValid = false;
+                }
             }
 
-            if (weight && height) {
-                const bmi = weight / Math.pow(height / 100, 2);
+            const { weightKg, heightCm } = getMetricValues();
+            if (weightKg && heightCm) {
+                const bmi = weightKg / Math.pow(heightCm / 100, 2);
                 if (bmi < 10 || bmi > 65) {
                     document.getElementById('bmiError').classList.add('show');
                     isValid = false;
@@ -519,10 +697,13 @@
 
             const partnerID = document.getElementById('partnerID').value.trim();
 
+            // Always send metric values to the backend regardless of display unit
+            const { weightKg, heightCm } = getMetricValues();
+
             const formData = {
                 age: document.getElementById('age').value.toString(),
-                weight: document.getElementById('weight').value.toString(),
-                height: document.getElementById('height').value.toString(),
+                weight: weightKg.toString(),
+                height: heightCm.toString(),
                 sex: document.querySelector('input[name="sex"]:checked').value,
                 smoking: document.querySelector('input[name="smoking"]:checked').value,
                 diabetes: document.querySelector('input[name="diabetes"]:checked').value,
@@ -564,7 +745,20 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            applyTranslations(localStorage.getItem('selectedLanguage') || 'en');
+            const lang = localStorage.getItem('selectedLanguage') || 'en';
+            applyTranslations(lang);
+
+            // Restore unit preference
+            if (currentUnits === 'imperial') {
+                document.getElementById('btn-metric').classList.remove('active');
+                document.getElementById('btn-imperial').classList.add('active');
+                document.getElementById('height').style.display = 'none';
+                document.getElementById('height').required = false;
+                document.getElementById('height-imperial').style.display = 'flex';
+                document.getElementById('weight').min = '66';
+                document.getElementById('weight').max = '661';
+                applyUnitLabels(lang);
+            }
 
             // Start hidden (opacity:0). After 100ms, add .visible to fade in.
             // If the WebView resumes this page after a native scan, Android calls
@@ -580,12 +774,21 @@
             });
             document.getElementById('weight').addEventListener('input', function() {
                 const v = parseFloat(this.value);
-                if (v >= 30 && v <= 300) document.getElementById('weightError').classList.remove('show');
+                const ok = currentUnits === 'imperial' ? (v >= 66 && v <= 661) : (v >= 30 && v <= 300);
+                if (ok) document.getElementById('weightError').classList.remove('show');
                 document.getElementById('bmiError').classList.remove('show');
             });
             document.getElementById('height').addEventListener('input', function() {
                 const v = parseInt(this.value);
                 if (v >= 120 && v <= 220) document.getElementById('heightError').classList.remove('show');
+                document.getElementById('bmiError').classList.remove('show');
+            });
+            document.getElementById('heightFt').addEventListener('input', function() {
+                document.getElementById('heightError').classList.remove('show');
+                document.getElementById('bmiError').classList.remove('show');
+            });
+            document.getElementById('heightIn').addEventListener('input', function() {
+                document.getElementById('heightError').classList.remove('show');
                 document.getElementById('bmiError').classList.remove('show');
             });
             document.getElementById('partnerID').addEventListener('input', function() {
