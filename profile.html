@@ -322,7 +322,7 @@
                 <div class="form-group">
                     <label class="form-label" for="weight"><span id="lbl-weight" data-i18n="lbl_weight">Weight (kg)</span> <span class="required">*</span></label>
                     <input type="number" id="weight" name="weight" class="form-input"
-                        placeholder="Enter your weight" min="30" max="300" step="0.1" required data-i18n-placeholder="ph_weight">
+                        placeholder="Enter your weight" min="30" max="300" step="1" required data-i18n-placeholder="ph_weight">
                     <div class="error-message" id="weightError" data-i18n="err_weight">Please enter a valid weight (30–300 kg)</div>
                 </div>
 
@@ -520,11 +520,12 @@
                 if (unit === 'imperial') {
                     weightInput.value = Math.round(weightVal * 2.20462 * 10) / 10;
                 } else {
-                    weightInput.value = Math.round(weightVal / 2.20462 * 10) / 10;
+                    weightInput.value = Math.round(weightVal / 2.20462); // integer kg for backend
                 }
             }
             weightInput.min = unit === 'imperial' ? '66' : '30';
             weightInput.max = unit === 'imperial' ? '661' : '300';
+            weightInput.step = unit === 'imperial' ? '0.5' : '1';
 
             // Show/hide height inputs and convert values
             const heightMetric = document.getElementById('height');
@@ -600,12 +601,12 @@
             let weightKg, heightCm;
             if (isImperial) {
                 const lbs = parseFloat(document.getElementById('weight').value);
-                weightKg = isNaN(lbs) ? NaN : Math.round(lbs / 2.20462 * 10) / 10;
+                weightKg = isNaN(lbs) ? NaN : Math.round(lbs / 2.20462);
                 const ft = parseInt(document.getElementById('heightFt').value);
                 const inches = parseInt(document.getElementById('heightIn').value);
                 heightCm = isNaN(ft) ? NaN : Math.round(ft * 30.48 + (isNaN(inches) ? 0 : inches) * 2.54);
             } else {
-                weightKg = parseFloat(document.getElementById('weight').value);
+                weightKg = Math.round(parseFloat(document.getElementById('weight').value));
                 heightCm = parseInt(document.getElementById('height').value);
             }
             return { weightKg, heightCm };
@@ -755,8 +756,8 @@
                 document.getElementById('height').style.display = 'none';
                 document.getElementById('height').required = false;
                 document.getElementById('height-imperial').style.display = 'flex';
-                document.getElementById('weight').min = '66';
-                document.getElementById('weight').max = '661';
+                const w = document.getElementById('weight');
+                w.min = '66'; w.max = '661'; w.step = '0.5';
                 applyUnitLabels(lang);
             }
 
